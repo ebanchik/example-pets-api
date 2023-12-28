@@ -1,6 +1,6 @@
-class ApplicationController < ActionController::Base
-  protect_from_forgery with: :exception, unless: -> { request.format.json? }
-
+class PetsController < ApplicationController
+  before_action :authenticate_user, only: [:create]
+ 
   def current_user
     auth_headers = request.headers["Authorization"]
     if auth_headers.present? && auth_headers[/(?<=\A(Bearer ))\S+\z/]
@@ -18,10 +18,30 @@ class ApplicationController < ActionController::Base
       end
     end
   end
-
+ 
   def authenticate_user
     unless current_user
       render json: {}, status: :unauthorized
     end
   end
+ 
+  def index
+    @pets = Pet.all
+    render template: "pets/index"
+  end
+ 
+  def show
+    @pet = Pet.find_by(id: params[:id])
+    render template: "pets/show"
+  end
+  
+  def create
+    @pet = Pet.create(
+      name: params[:name],
+      age: params[:age],
+      breed: params[:breed]
+    )
+    render json: {new: @pet}
+  end
 end
+ 
